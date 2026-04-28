@@ -12,7 +12,7 @@ export default function DashboardPage() {
   const { getExpenses, addExpense, updateExpense, deleteExpense } = useExpenses()
   const router = useRouter()
 
-  const [expenses, setExpenses] = useState([])
+  const [expenses, setExpenses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [addingExpense, setAddingExpense] = useState(false)
   const [total, setTotal] = useState(0)
@@ -35,7 +35,7 @@ export default function DashboardPage() {
     setLoading(true)
     const data = await getExpenses()
     if (Array.isArray(data)) {
-      setExpenses(data.sort((a, b) => new Date(b.date) - new Date(a.date)))
+      setExpenses(data.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()))
       const sum = data.reduce((acc, exp) => acc + exp.amount, 0)
       setTotal(sum)
     }
