@@ -42,7 +42,7 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
-  const handleAddExpense = async (amount, category, description) => {
+  const handleAddExpense = async (amount: number, category: string, description: string) => {
     setAddingExpense(true)
     const result = await addExpense(amount, category, description)
     if (result._id) {
@@ -53,14 +53,14 @@ export default function DashboardPage() {
     setAddingExpense(false)
   }
 
-  const handleDeleteExpense = async (id) => {
+  const handleDeleteExpense = async (id: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?')) {
       await deleteExpense(id)
       await loadExpenses()
     }
   }
 
-  const handleEditExpense = async (id, data) => {
+  const handleEditExpense = async (id: string, data: any) => {
     const result = await updateExpense(id, { amount: data.amount, description: data.description, category: data.category })
     if (result._id) {
       await loadExpenses()
