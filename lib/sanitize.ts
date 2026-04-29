@@ -5,10 +5,10 @@ export function sanitizeString(str: string): string {
 }
 
 export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
-  const sanitized = { ...obj } as Record<string, any>
+  const sanitized: any = { ...obj }
   for (const key in sanitized) {
     if (typeof sanitized[key] === 'string') {
-      sanitized[key] = sanitizeString(sanitized[key] as string)
+      sanitized[key] = sanitizeString(sanitized[key])
     } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
       sanitized[key] = sanitizeObject(sanitized[key])
     }
