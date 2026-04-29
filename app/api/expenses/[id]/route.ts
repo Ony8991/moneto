@@ -3,12 +3,13 @@ import { verifyToken, unauthorized } from '@/lib/auth'
 import { updateExpenseSchema } from '@/lib/validators/expense.validator'
 import { deleteExpense, updateExpense } from '@/lib/services/expense.service'
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const userId = verifyToken(request)
   if (!userId) return unauthorized()
 
   try {
-    const result = await deleteExpense(userId, params.id)
+    const { id } = await params
+    const result = await deleteExpense(userId, id)
     return NextResponse.json(result)
   } catch (error: any) {
     return NextResponse.json(
@@ -18,11 +19,12 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const userId = verifyToken(request)
   if (!userId) return unauthorized()
 
   try {
+    const { id } = await params
     const body = await request.json()
     const input = updateExpenseSchema.safeParse(body)
 
@@ -33,7 +35,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       )
     }
 
-    const expense = await updateExpense(userId, params.id, input.data)
+    const expense = await updateExpense(userId, id, input.data)
     return NextResponse.json(expense)
   } catch (error: any) {
     return NextResponse.json(
