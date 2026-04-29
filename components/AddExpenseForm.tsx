@@ -4,17 +4,26 @@ import { useState } from 'react'
 
 const categories = ['Alimentation', 'Transport', 'Loisirs', 'Santé', 'Logement', 'Vêtements', 'Autre']
 
-export default function AddExpenseForm({ onAdd, loading }) {
+interface AddExpenseFormProps {
+  onAdd: (amount: number, category: string, description: string) => void
+  loading: boolean
+}
+
+export default function AddExpenseForm({ onAdd, loading }: AddExpenseFormProps) {
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('Alimentation')
   const [description, setDescription] = useState('')
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setError('')
+    
     if (!amount || !description) {
-      alert('Veuillez remplir tous les champs')
+      setError('Veuillez remplir tous les champs')
       return
     }
+
     onAdd(parseFloat(amount), category, description)
     setAmount('')
     setDescription('')
@@ -23,6 +32,12 @@ export default function AddExpenseForm({ onAdd, loading }) {
   return (
     <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
       <h2 className="text-xl font-bold text-gray-900 mb-4">Ajouter une dépense</h2>
+      
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -77,13 +92,12 @@ export default function AddExpenseForm({ onAdd, loading }) {
           />
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg transition duration-200 disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Ajout en cours...' : '+ Ajouter une dépense'}
+          {loading ? 'Ajout en cours...' : 'Ajouter la dépense'}
         </button>
       </form>
     </div>
