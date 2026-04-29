@@ -27,10 +27,10 @@ export default function RegisterPage() {
 
     const result = await register(email, password, name)
     
-    if (result.message && result.message.includes('successfully')) {
+    if (result.success) {
       router.push('/dashboard')
     } else {
-      setError(result.message || 'Registration failed')
+      setError(result.error || 'Une erreur est survenue')
     }
     
     setLoading(false)

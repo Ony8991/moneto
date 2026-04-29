@@ -6,16 +6,38 @@ import { useAuth } from '@/context/AuthContext'
 import { useExpenses } from '@/hooks/useExpenses'
 import AddExpenseForm from '@/components/AddExpenseForm'
 import ExpenseList from '@/components/ExpenseList'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { Toast } from '@/components/Toast'
+
+interface Expense {
+  _id: string
+  amount: number
+  category: string
+  description: string
+  date: string
+  userId: string
+}
 
 export default function DashboardPage() {
   const { user, token, loading: authLoading, logout } = useAuth()
   const { getExpenses, addExpense, updateExpense, deleteExpense } = useExpenses()
   const router = useRouter()
 
-  const [expenses, setExpenses] = useState<any[]>([])
+  const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
   const [addingExpense, setAddingExpense] = useState(false)
   const [total, setTotal] = useState(0)
+  
+  // Dialog and Toast states
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    expenseId: string | null
+  }>({ isOpen: false, expenseId: null })
+  const [toast, setToast] = useState<{
+    isOpen: boolean
+    message: string
+    type: 'success' | 'error' | 'info'
+  }>({ isOpen: false, message: '', type: 'info' })
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -35,8 +57,8 @@ export default function DashboardPage() {
     setLoading(true)
     const data = await getExpenses()
     if (Array.isArray(data)) {
-      setExpenses(data.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()))
-      const sum = data.reduce((acc, exp) => acc + exp.amount, 0)
+      setExpenses(data.sort((a: Expense, b: Expense) => new Date(b.date).getTime() - new Date(a.date).getTime()))
+      const sum = data.reduce((acc: number, exp: Expense) => acc + exp.amount, 0)
       setTotal(sum)
     }
     setLoading(false)
@@ -45,27 +67,39 @@ export default function DashboardPage() {
   const handleAddExpense = async (amount: number, category: string, description: string) => {
     setAddingExpense(true)
     const result = await addExpense(amount, category, description)
-    if (result._id) {
+    if (result.success && result.data) {
       await loadExpenses()
+      setToast({ isOpen: true, message: 'Dépense ajoutée avec succès', type: 'success' })
     } else {
-      alert('Erreur lors de l\'ajout de la dépense')
+      setToast({ isOpen: true, message: result.error || 'Erreur lors de l\'ajout', type: 'error' })
     }
     setAddingExpense(false)
   }
 
   const handleDeleteExpense = async (id: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?')) {
-      await deleteExpense(id)
-      await loadExpenses()
-    }
+    setConfirmDialog({ isOpen: true, expenseId: id })
   }
 
-  const handleEditExpense = async (id: string, data: any) => {
-    const result = await updateExpense(id, { amount: data.amount, description: data.description, category: data.category })
-    if (result._id) {
+  const confirmDelete = async () => {
+    if (confirmDialog.expenseId) {
+      const result = await deleteExpense(confirmDialog.expenseId)
+      if (result.success) {
+        await loadExpenses()
+        setToast({ isOpen: true, message: 'Dépense supprimée avec succès', type: 'success' })
+      } else {
+        setToast({ isOpen: true, message: result.error || 'Erreur lors de la suppression', type: 'error' })
+      }
+    }
+    setConfirmDialog({ isOpen: false, expenseId: null })
+  }
+
+  const handleEditExpense = async (id: string, data: Partial<Expense>) => {
+    const result = await updateExpense(id, data)
+    if (result.success && result.data) {
       await loadExpenses()
+      setToast({ isOpen: true, message: 'Dépense modifiée avec succès', type: 'success' })
     } else {
-      alert('Erreur lors de la modification')
+      setToast({ isOpen: true, message: result.error || 'Erreur lors de la modification', type: 'error' })
     }
   }
 
@@ -97,16 +131,20 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <p className="text-gray-600 text-sm">Total des dépenses</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{total.toFixed(2)}€</p>
+            <p className="text-3xl font-bold text-blue-600 mt-2">
+              {loading ? '...' : total.toFixed(2)}€
+            </p>
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <p className="text-gray-600 text-sm">Nombre de dépenses</p>
-            <p className="text-3xl font-bold text-purple-600 mt-2">{expenses.length}</p>
+            <p className="text-3xl font-bold text-purple-600 mt-2">
+              {loading ? '...' : expenses.length}
+            </p>
           </div>
           <div className="bg-white rounded-lg shadow p-6">
             <p className="text-gray-600 text-sm">Moyenne par dépense</p>
             <p className="text-3xl font-bold text-green-600 mt-2">
-              {expenses.length > 0 ? (total / expenses.length).toFixed(2) : '0.00'}€
+              {loading ? '...' : (expenses.length > 0 ? (total / expenses.length).toFixed(2) : '0.00')}€
             </p>
           </div>
         </div>
@@ -123,8 +161,15 @@ export default function DashboardPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Historique des dépenses</h2>
               {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="text-gray-500">Chargement...</div>
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+                  <div className="text-gray-500">Chargement des dépenses...</div>
+                </div>
+              ) : expenses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="text-5xl mb-3">📭</div>
+                  <p className="text-gray-500 text-lg">Aucune dépense enregistrée</p>
+                  <p className="text-gray-400 text-sm">Commencez à ajouter des dépenses</p>
                 </div>
               ) : (
                 <ExpenseList
@@ -137,6 +182,25 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+
+      {/* Dialogs and Toasts */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Supprimer la dépense"
+        message="Êtes-vous sûr de vouloir supprimer cette dépense ? Cette action ne peut pas être annulée."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isDestructive
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmDialog({ isOpen: false, expenseId: null })}
+      />
+      
+      <Toast
+        isOpen={toast.isOpen}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ ...toast, isOpen: false })}
+      />
     </div>
   )
 }
