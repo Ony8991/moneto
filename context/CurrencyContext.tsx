@@ -10,8 +10,8 @@ export const CURRENCIES = {
 
 export type CurrencyCode = keyof typeof CURRENCIES
 
-// Taux de change avec l'euro comme base (1 EUR = X devise)
-// Taux indicatifs — à mettre à jour périodiquement
+// Exchange rates with Euro as base (1 EUR = X units of currency)
+// Indicative rates — update periodically
 const RATES: Record<CurrencyCode, number> = {
   EUR: 1,
   MUR: 48.5,
@@ -23,9 +23,9 @@ interface CurrencyContextType {
   symbol: string
   name: string
   setCurrency: (code: CurrencyCode) => void
-  /** Convertit un montant stocké en EUR vers la devise affichée */
+  /** Converts a EUR-stored amount to the current display currency */
   fromEUR: (amount: number) => number
-  /** Convertit un montant saisi dans la devise affichée vers l'EUR pour stockage */
+  /** Converts an amount from the current display currency back to EUR for storage */
   toEUR: (amount: number) => number
 }
 

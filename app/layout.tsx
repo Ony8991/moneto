@@ -32,7 +32,7 @@ export default function RootLayout({
     >
       <head>
         <meta charSet="UTF-8" />
-        {/* Évite le flash de thème au chargement */}
+        {/* Prevents theme flash on page load */}
         <script dangerouslySetInnerHTML={{ __html: `
           try {
             const t = localStorage.getItem('theme');

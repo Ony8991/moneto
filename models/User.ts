@@ -17,13 +17,13 @@ const UserSchema = new mongoose.Schema({
   },
 }, { timestamps: true })
 
-// Hash le mot de passe avant de sauvegarder
+// Hash password before saving
 UserSchema.pre('save', async function () {
   if (!this.isModified('password')) return
   this.password = await bcrypt.hash(this.password, 10)
 })
 
-// Méthode pour vérifier le mot de passe
+// Method to verify password
 UserSchema.methods.comparePassword = async function (candidate: string) {
   return bcrypt.compare(candidate, this.password)
 }
