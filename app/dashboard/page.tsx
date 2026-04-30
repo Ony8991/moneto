@@ -108,6 +108,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
+
       <header className="bg-white dark:bg-gray-800 shadow transition-colors">
         <div className="max-w-6xl mx-auto px-4 py-5 flex justify-between items-center gap-4 flex-wrap">
           <div>
@@ -170,7 +171,7 @@ export default function DashboardPage() {
         {/* Budget */}
         <BudgetSection expenses={expenses} />
 
-        {/* Graphiques */}
+        {/* Charts */}
         {!loading && expenses.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ExpenseChart expenses={filteredExpenses} />
@@ -178,7 +179,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Filtres + Recherche */}
+        {/* Filters + Search */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-wrap gap-4 items-end transition-colors">
           <div className="flex-1 min-w-36">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie</label>
@@ -222,7 +223,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Formulaire + Liste */}
+        {/* Form + List */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
             <AddExpenseForm onAdd={handleAddExpense} loading={addingExpense} />

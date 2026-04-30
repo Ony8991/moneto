@@ -7,7 +7,7 @@ const BudgetSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  // { "Alimentation": 300, "Transport": 100, ... } stocké en EUR
+  // { "Alimentation": 300, "Transport": 100, ... } stored in EUR
   categories: {
     type: Object,
     default: {},

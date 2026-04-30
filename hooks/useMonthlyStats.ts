@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 
 export interface MonthlyEntry {
   month: string // "YYYY-MM"
-  total: number // en EUR
+  total: number // in EUR
 }
 
 export function useMonthlyStats() {
