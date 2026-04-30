@@ -1,130 +1,99 @@
-import { useAuth } from '@/context/AuthContext'
+'use client'
 
-interface Expense {
-  _id: string
-  amount: number
-  category: string
-  description: string
-  date: string
-  userId: string
-}
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { Expense, ExpenseFilters } from '@/types/expense'
 
-interface ApiError {
-  error?: string
-  message?: string
-}
+export function useExpenses(filters: ExpenseFilters = {}) {
+  const [expenses, setExpenses] = useState<Expense[]>([])
+  const [loading, setLoading] = useState(true)
 
-export function useExpenses() {
-  const { token } = useAuth()
-
-  const getExpenses = async (): Promise<Expense[]> => {
+  const loadExpenses = useCallback(async () => {
+    setLoading(true)
     try {
-      const res = await fetch('/api/expenses', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`)
-      }
-      
+      const params = new URLSearchParams()
+      if (filters.category) params.set('category', filters.category)
+      if (filters.month) params.set('month', filters.month)
+      const res = await fetch(`/api/expenses?${params}`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
-      return Array.isArray(data) ? data : []
+      setExpenses(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching expenses:', error)
-      return []
+      setExpenses([])
+    } finally {
+      setLoading(false)
     }
-  }
+  }, [filters.category, filters.month])
+
+  useEffect(() => {
+    loadExpenses()
+  }, [loadExpenses])
+
+  const total = useMemo(() => expenses.reduce((sum, e) => sum + e.amount, 0), [expenses])
 
   const addExpense = async (
     amount: number,
     category: string,
-    description: string
-  ): Promise<{ success: boolean; data?: Expense; error?: string }> => {
+    description: string,
+    date?: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (amount <= 0) return { success: false, error: 'Le montant doit être supérieur à 0' }
+    if (!description?.trim()) return { success: false, error: 'La description ne peut pas être vide' }
     try {
-      if (amount <= 0) {
-        return { success: false, error: 'Le montant doit être supérieur à 0' }
-      }
-      if (!description?.trim()) {
-        return { success: false, error: 'La description ne peut pas être vide' }
-      }
-
       const res = await fetch('/api/expenses', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ amount, category, description })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, category, description, date }),
       })
-
       if (!res.ok) {
-        const error: ApiError = await res.json().catch(() => ({}))
+        const error = await res.json().catch(() => ({}))
         throw new Error(error.message || `HTTP ${res.status}`)
       }
-
-      const data: Expense = await res.json()
-      return { success: true, data }
+      await loadExpenses()
+      return { success: true }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erreur lors de l\'ajout'
-      console.error('Error adding expense:', error)
-      return { success: false, error: message }
+      return { success: false, error: error instanceof Error ? error.message : "Erreur lors de l'ajout" }
     }
   }
 
   const updateExpense = async (
     id: string,
     data: Partial<Expense>
-  ): Promise<{ success: boolean; data?: Expense; error?: string }> => {
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (data.amount !== undefined && data.amount <= 0)
+      return { success: false, error: 'Le montant doit être supérieur à 0' }
+    if (data.description !== undefined && !data.description?.trim())
+      return { success: false, error: 'La description ne peut pas être vide' }
     try {
-      if (data.amount !== undefined && data.amount <= 0) {
-        return { success: false, error: 'Le montant doit être supérieur à 0' }
-      }
-      if (data.description !== undefined && !data.description?.trim()) {
-        return { success: false, error: 'La description ne peut pas être vide' }
-      }
-
       const res = await fetch(`/api/expenses/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(data)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       })
-
       if (!res.ok) {
-        const error: ApiError = await res.json().catch(() => ({}))
+        const error = await res.json().catch(() => ({}))
         throw new Error(error.message || `HTTP ${res.status}`)
       }
-
-      const result: Expense = await res.json()
-      return { success: true, data: result }
+      await loadExpenses()
+      return { success: true }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erreur lors de la modification'
-      console.error('Error updating expense:', error)
-      return { success: false, error: message }
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la modification' }
     }
   }
 
   const deleteExpense = async (id: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const res = await fetch(`/api/expenses/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-
+      const res = await fetch(`/api/expenses/${id}`, { method: 'DELETE' })
       if (!res.ok) {
-        const error: ApiError = await res.json().catch(() => ({}))
+        const error = await res.json().catch(() => ({}))
         throw new Error(error.message || `HTTP ${res.status}`)
       }
-
+      await loadExpenses()
       return { success: true }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erreur lors de la suppression'
-      console.error('Error deleting expense:', error)
-      return { success: false, error: message }
+      return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la suppression' }
     }
   }
 
-  return { getExpenses, addExpense, updateExpense, deleteExpense }
+  return { expenses, loading, total, addExpense, updateExpense, deleteExpense }
 }

@@ -1,15 +1,15 @@
 import jwt from 'jsonwebtoken'
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-
-export function verifyToken(request: Request): string | null {
+export async function verifyToken(): Promise<string | null> {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) return null
-
-    const token = authHeader.split(' ')[1]
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string }
+    const cookieStore = await cookies()
+    const token = cookieStore.get('token')?.value
+    if (!token) return null
+    const secret = process.env.JWT_SECRET
+    if (!secret) throw new Error('JWT_SECRET is not configured')
+    const decoded = jwt.verify(token, secret) as { userId: string }
     return decoded.userId
   } catch {
     return null
@@ -17,8 +17,5 @@ export function verifyToken(request: Request): string | null {
 }
 
 export function unauthorized() {
-  return NextResponse.json(
-    { message: 'Non autorisé' },
-    { status: 401 }
-  )
+  return NextResponse.json({ message: 'Non autorisé' }, { status: 401 })
 }

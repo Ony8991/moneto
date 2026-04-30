@@ -4,24 +4,24 @@ const ExpenseSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   amount: {
     type: Number,
-    required: true
+    required: true,
   },
   category: {
     type: String,
-    required: true
+    required: true,
   },
   description: {
     type: String,
-    default: ''
+    default: '',
   },
   date: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 })
 
 const Expense = mongoose.models.Expense || mongoose.model('Expense', ExpenseSchema)

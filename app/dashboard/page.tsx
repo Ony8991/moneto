@@ -1,180 +1,258 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { useAuth } from '@/context/AuthContext'
 import { useExpenses } from '@/hooks/useExpenses'
+import { useCurrency, CURRENCIES, CurrencyCode } from '@/context/CurrencyContext'
+import { useTheme } from '@/context/ThemeContext'
 import AddExpenseForm from '@/components/AddExpenseForm'
 import ExpenseList from '@/components/ExpenseList'
+import BudgetSection from '@/components/BudgetSection'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Toast } from '@/components/Toast'
+import { Expense } from '@/types/expense'
+import { CATEGORIES } from '@/components/AddExpenseForm'
 
-interface Expense {
-  _id: string
-  amount: number
-  category: string
-  description: string
-  date: string
-  userId: string
-}
+const ExpenseChart = dynamic(() => import('@/components/ExpenseChart'), { ssr: false })
+const MonthlyChart = dynamic(() => import('@/components/MonthlyChart'), { ssr: false })
 
 export default function DashboardPage() {
-  const { user, token, loading: authLoading, logout } = useAuth()
-  const { getExpenses, addExpense, updateExpense, deleteExpense } = useExpenses()
+  const { user, loading: authLoading, logout } = useAuth()
+  const { symbol, currency, setCurrency, fromEUR } = useCurrency()
+  const { theme, toggleTheme } = useTheme()
   const router = useRouter()
 
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [loading, setLoading] = useState(true)
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [monthFilter, setMonthFilter] = useState('')
+  const [search, setSearch] = useState('')
+
+  const { expenses, loading, total, addExpense, updateExpense, deleteExpense } = useExpenses({
+    category: categoryFilter || undefined,
+    month: monthFilter || undefined,
+  })
+
+  const filteredExpenses = useMemo(() => {
+    if (!search.trim()) return expenses
+    const q = search.toLowerCase()
+    return expenses.filter(
+      e =>
+        e.description.toLowerCase().includes(q) ||
+        e.category.toLowerCase().includes(q)
+    )
+  }, [expenses, search])
+
+  const filteredTotal = useMemo(
+    () => filteredExpenses.reduce((sum, e) => sum + e.amount, 0),
+    [filteredExpenses]
+  )
+
   const [addingExpense, setAddingExpense] = useState(false)
-  const [total, setTotal] = useState(0)
-  
-  // Dialog and Toast states
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean
-    expenseId: string | null
-  }>({ isOpen: false, expenseId: null })
-  const [toast, setToast] = useState<{
-    isOpen: boolean
-    message: string
-    type: 'success' | 'error' | 'info'
-  }>({ isOpen: false, message: '', type: 'info' })
+  const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; expenseId: string | null }>({
+    isOpen: false,
+    expenseId: null,
+  })
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' | 'info' }>({
+    isOpen: false,
+    message: '',
+    type: 'info',
+  })
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !token) {
-      router.push('/login')
-    }
-  }, [token, authLoading, router])
+  const showToast = (message: string, type: 'success' | 'error') =>
+    setToast({ isOpen: true, message, type })
 
-  // Load expenses
-  useEffect(() => {
-    if (token) {
-      loadExpenses()
-    }
-  }, [token])
-
-  const loadExpenses = async () => {
-    setLoading(true)
-    const data = await getExpenses()
-    if (Array.isArray(data)) {
-      setExpenses(data.sort((a: Expense, b: Expense) => new Date(b.date).getTime() - new Date(a.date).getTime()))
-      const sum = data.reduce((acc: number, exp: Expense) => acc + exp.amount, 0)
-      setTotal(sum)
-    }
-    setLoading(false)
+  if (authLoading) return null
+  if (!user) {
+    router.push('/login')
+    return null
   }
 
-  const handleAddExpense = async (amount: number, category: string, description: string) => {
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
+
+  const handleAddExpense = async (amount: number, category: string, description: string, date: string) => {
     setAddingExpense(true)
-    const result = await addExpense(amount, category, description)
-    if (result.success && result.data) {
-      await loadExpenses()
-      setToast({ isOpen: true, message: 'Dépense ajoutée avec succès', type: 'success' })
-    } else {
-      setToast({ isOpen: true, message: result.error || 'Erreur lors de l\'ajout', type: 'error' })
-    }
+    const result = await addExpense(amount, category, description, date)
+    showToast(
+      result.success ? 'Dépense ajoutée avec succès' : result.error || "Erreur lors de l'ajout",
+      result.success ? 'success' : 'error'
+    )
     setAddingExpense(false)
-  }
-
-  const handleDeleteExpense = async (id: string) => {
-    setConfirmDialog({ isOpen: true, expenseId: id })
   }
 
   const confirmDelete = async () => {
     if (confirmDialog.expenseId) {
       const result = await deleteExpense(confirmDialog.expenseId)
-      if (result.success) {
-        await loadExpenses()
-        setToast({ isOpen: true, message: 'Dépense supprimée avec succès', type: 'success' })
-      } else {
-        setToast({ isOpen: true, message: result.error || 'Erreur lors de la suppression', type: 'error' })
-      }
+      showToast(
+        result.success ? 'Dépense supprimée avec succès' : result.error || 'Erreur lors de la suppression',
+        result.success ? 'success' : 'error'
+      )
     }
     setConfirmDialog({ isOpen: false, expenseId: null })
   }
 
   const handleEditExpense = async (id: string, data: Partial<Expense>) => {
     const result = await updateExpense(id, data)
-    if (result.success && result.data) {
-      await loadExpenses()
-      setToast({ isOpen: true, message: 'Dépense modifiée avec succès', type: 'success' })
-    } else {
-      setToast({ isOpen: true, message: result.error || 'Erreur lors de la modification', type: 'error' })
-    }
+    showToast(
+      result.success ? 'Dépense modifiée avec succès' : result.error || 'Erreur lors de la modification',
+      result.success ? 'success' : 'error'
+    )
   }
 
-  if (authLoading || !token) {
-    return null
-  }
+  const average = filteredExpenses.length > 0 ? filteredTotal / filteredExpenses.length : 0
+  const hasFilters = categoryFilter || monthFilter || search
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-6xl mx-auto px-4 py-6 flex justify-between items-center">
+      <header className="bg-white dark:bg-gray-800 shadow transition-colors">
+        <div className="max-w-6xl mx-auto px-4 py-5 flex justify-between items-center gap-4 flex-wrap">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Moneto</h1>
-            <p className="text-gray-600">Bienvenue, {user?.name}</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Moneto</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Bienvenue, {user.name}</p>
           </div>
-          <button
-            onClick={logout}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition"
-          >
-            Déconnexion
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              title="Changer la devise"
+            >
+              {Object.values(CURRENCIES).map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.symbol} {c.name}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
+              title={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition text-sm font-medium whitespace-nowrap"
+            >
+              Déconnexion
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <p className="text-gray-600 text-sm">Total des dépenses</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">
-              {loading ? '...' : total.toFixed(2)}€
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Total des dépenses</p>
+            <p className="text-3xl font-bold text-blue-600 mt-1">
+              {loading ? '...' : `${fromEUR(filteredTotal).toFixed(2)} ${symbol}`}
             </p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <p className="text-gray-600 text-sm">Nombre de dépenses</p>
-            <p className="text-3xl font-bold text-purple-600 mt-2">
-              {loading ? '...' : expenses.length}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Nombre de dépenses</p>
+            <p className="text-3xl font-bold text-purple-600 mt-1">
+              {loading ? '...' : filteredExpenses.length}
             </p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <p className="text-gray-600 text-sm">Moyenne par dépense</p>
-            <p className="text-3xl font-bold text-green-600 mt-2">
-              {loading ? '...' : (expenses.length > 0 ? (total / expenses.length).toFixed(2) : '0.00')}€
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Moyenne par dépense</p>
+            <p className="text-3xl font-bold text-green-600 mt-1">
+              {loading ? '...' : `${fromEUR(average).toFixed(2)} ${symbol}`}
             </p>
           </div>
         </div>
 
-        {/* Content Grid */}
+        {/* Budget */}
+        <BudgetSection expenses={expenses} />
+
+        {/* Graphiques */}
+        {!loading && expenses.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ExpenseChart expenses={filteredExpenses} />
+            <MonthlyChart />
+          </div>
+        )}
+
+        {/* Filtres + Recherche */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-wrap gap-4 items-end transition-colors">
+          <div className="flex-1 min-w-36">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie</label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            >
+              <option value="">Toutes les catégories</option>
+              {CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1 min-w-36">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mois</label>
+            <input
+              type="month"
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            />
+          </div>
+          <div className="flex-1 min-w-48">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recherche</label>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Description ou catégorie..."
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+            />
+          </div>
+          {hasFilters && (
+            <button
+              onClick={() => { setCategoryFilter(''); setMonthFilter(''); setSearch('') }}
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+            >
+              Réinitialiser
+            </button>
+          )}
+        </div>
+
+        {/* Formulaire + Liste */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Add Expense Form */}
           <div className="lg:col-span-1">
             <AddExpenseForm onAdd={handleAddExpense} loading={addingExpense} />
           </div>
-
-          {/* Expenses List */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Historique des dépenses</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
+              <div className="flex justify-between items-center mb-5">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Historique</h2>
+                {search && (
+                  <span className="text-sm text-gray-400 dark:text-gray-500">
+                    {filteredExpenses.length} résultat{filteredExpenses.length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
-                  <div className="text-gray-500">Chargement des dépenses...</div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3" />
+                  <p className="text-gray-400 dark:text-gray-500 text-sm">Chargement...</p>
                 </div>
-              ) : expenses.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="text-5xl mb-3">📭</div>
-                  <p className="text-gray-500 text-lg">Aucune dépense enregistrée</p>
-                  <p className="text-gray-400 text-sm">Commencez à ajouter des dépenses</p>
+              ) : filteredExpenses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <p className="text-gray-500 dark:text-gray-400 text-lg">Aucune dépense</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
+                    {hasFilters ? 'Aucun résultat pour ces filtres' : 'Commencez à ajouter des dépenses'}
+                  </p>
                 </div>
               ) : (
                 <ExpenseList
-                  expenses={expenses}
-                  onDelete={handleDeleteExpense}
+                  expenses={filteredExpenses}
+                  onDelete={(id) => setConfirmDialog({ isOpen: true, expenseId: id })}
                   onEdit={handleEditExpense}
                 />
               )}
@@ -183,7 +261,6 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Dialogs and Toasts */}
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
         title="Supprimer la dépense"
@@ -194,7 +271,6 @@ export default function DashboardPage() {
         onConfirm={confirmDelete}
         onCancel={() => setConfirmDialog({ isOpen: false, expenseId: null })}
       />
-      
       <Toast
         isOpen={toast.isOpen}
         message={toast.message}
