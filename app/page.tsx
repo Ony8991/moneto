@@ -5,18 +5,14 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 
 export default function Home() {
-  const { token, loading } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (!loading) {
-      if (token) {
-        router.push('/dashboard')
-      } else {
-        router.push('/login')
-      }
+      router.push(user ? '/dashboard' : '/login')
     }
-  }, [token, loading, router])
+  }, [user, loading, router])
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">

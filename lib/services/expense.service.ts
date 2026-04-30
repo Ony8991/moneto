@@ -1,30 +1,52 @@
-﻿import { connectDB } from '@/lib/mongodb'
+import { connectDB } from '@/lib/mongodb'
 import Expense from '@/models/Expense'
 import { CreateExpenseInput, UpdateExpenseInput } from '@/lib/validators/expense.validator'
 
-export async function getUserExpenses(userId: string) {
+interface ExpenseFilters {
+  category?: string
+  month?: string // "YYYY-MM"
+}
+
+export async function getUserExpenses(userId: string, filters: ExpenseFilters = {}) {
   await connectDB()
-  return Expense.find({ userId }).sort({ date: -1 })
+  const query: Record<string, unknown> = { userId }
+
+  if (filters.category) query.category = filters.category
+
+  if (filters.month) {
+    const [year, month] = filters.month.split('-').map(Number)
+    query.date = {
+      $gte: new Date(year, month - 1, 1),
+      $lt: new Date(year, month, 1),
+    }
+  }
+
+  return Expense.find(query).sort({ date: -1 })
 }
 
 export async function createExpense(userId: string, input: CreateExpenseInput) {
   await connectDB()
-  return Expense.create({ ...input, userId })
+  return Expense.create({
+    ...input,
+    userId,
+    date: input.date ? new Date(input.date) : new Date(),
+  })
 }
 
 export async function deleteExpense(userId: string, expenseId: string) {
   await connectDB()
   const expense = await Expense.findById(expenseId)
-  if (!expense) throw new Error('Depense introuvable')
+  if (!expense) throw new Error('Dépense introuvable')
   if (expense.userId.toString() !== userId) throw new Error('Forbidden')
   await Expense.findByIdAndDelete(expenseId)
-  return { message: 'Depense supprimee' }
+  return { message: 'Dépense supprimée' }
 }
 
 export async function updateExpense(userId: string, expenseId: string, input: UpdateExpenseInput) {
   await connectDB()
   const expense = await Expense.findById(expenseId)
-  if (!expense) throw new Error('Depense introuvable')
+  if (!expense) throw new Error('Dépense introuvable')
   if (expense.userId.toString() !== userId) throw new Error('Forbidden')
-  return Expense.findByIdAndUpdate(expenseId, input, { new: true })
+  const updateData = { ...input, ...(input.date ? { date: new Date(input.date) } : {}) }
+  return Expense.findByIdAndUpdate(expenseId, updateData, { new: true })
 }

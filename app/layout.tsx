@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,10 +32,23 @@ export default function RootLayout({
     >
       <head>
         <meta charSet="UTF-8" />
+        {/* Évite le flash de thème au chargement */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            const t = localStorage.getItem('theme');
+            if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+              document.documentElement.classList.add('dark');
+            }
+          } catch(e) {}
+        `}} />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-white dark:bg-gray-900 transition-colors">
         <AuthProvider>
-          {children}
+          <CurrencyProvider>
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
+          </CurrencyProvider>
         </AuthProvider>
       </body>
     </html>
