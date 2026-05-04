@@ -19,7 +19,7 @@ export default function RegisterPage() {
     setError('')
     setLoading(true)
     if (password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères')
+      setError('Password must be at least 6 characters')
       setLoading(false)
       return
     }
@@ -27,7 +27,7 @@ export default function RegisterPage() {
     if (result.success) {
       router.push('/dashboard')
     } else {
-      setError(result.error || 'Une erreur est survenue')
+      setError(result.error || 'An error occurred')
     }
     setLoading(false)
   }
@@ -38,7 +38,7 @@ export default function RegisterPage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 transition-colors">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">Moneto</h1>
-            <p className="text-gray-600 dark:text-gray-400">Créez votre compte</p>
+            <p className="text-gray-600 dark:text-gray-400">Create your account</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -48,13 +48,13 @@ export default function RegisterPage() {
               </div>
             )}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom complet</label>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full name</label>
               <input
                 id="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Jean Dupont"
+                placeholder="John Doe"
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 required
               />
@@ -72,7 +72,7 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mot de passe</label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
               <input
                 id="password"
                 type="password"
@@ -82,22 +82,22 @@ export default function RegisterPage() {
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 required
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum 6 caractères</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum 6 characters</p>
             </div>
             <button
               type="submit"
               disabled={loading}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition duration-200 disabled:opacity-50"
             >
-              {loading ? 'Inscription...' : "S'inscrire"}
+              {loading ? 'Signing up...' : 'Sign up'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-gray-600 dark:text-gray-400">
-              Déjà inscrit ?{' '}
+              Already have an account?{' '}
               <Link href="/login" className="text-blue-500 hover:text-blue-600 font-medium">
-                Se connecter
+                Log in
               </Link>
             </p>
           </div>

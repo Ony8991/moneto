@@ -54,9 +54,9 @@ export default function BudgetSection({ expenses }: Props) {
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Budget mensuel</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Monthly budget</h2>
           <p className="text-sm text-gray-400 dark:text-gray-500">
-            Basé sur les dépenses actuellement chargées
+            Based on currently loaded expenses
           </p>
         </div>
         {!editing ? (
@@ -64,7 +64,7 @@ export default function BudgetSection({ expenses }: Props) {
             onClick={handleEditOpen}
             className="px-3 py-1.5 text-sm text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition"
           >
-            Modifier les budgets
+            Edit budgets
           </button>
         ) : (
           <div className="flex gap-2">
@@ -73,13 +73,13 @@ export default function BudgetSection({ expenses }: Props) {
               disabled={saving}
               className="px-3 py-1.5 text-sm bg-green-500 hover:bg-green-600 text-white rounded-lg transition disabled:opacity-50"
             >
-              {saving ? 'Enregistrement...' : 'Enregistrer'}
+              {saving ? 'Saving...' : 'Save'}
             </button>
             <button
               onClick={() => setEditing(false)}
               className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition"
             >
-              Annuler
+              Cancel
             </button>
           </div>
         )}
@@ -87,7 +87,7 @@ export default function BudgetSection({ expenses }: Props) {
 
       {!hasBudgets && !editing && (
         <p className="text-center text-gray-400 dark:text-gray-500 py-4 text-sm">
-          Aucun budget défini. Cliquez sur "Modifier les budgets" pour en ajouter.
+          No budget set. Click "Edit budgets" to add one.
         </p>
       )}
 
@@ -133,7 +133,7 @@ export default function BudgetSection({ expenses }: Props) {
               <div className="flex justify-between items-center mb-1">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{cat}</p>
                 {overBudget && (
-                  <span className="text-xs font-semibold text-red-500">Dépassé</span>
+                  <span className="text-xs font-semibold text-red-500">Over budget</span>
                 )}
               </div>
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">

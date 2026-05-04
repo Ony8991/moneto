@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { useCurrency } from '@/context/CurrencyContext'
 
 export const CATEGORIES = [
-  'Alimentation',
+  'Food',
   'Transport',
-  'Loisirs',
-  'Santé',
-  'Logement',
-  'Vêtements',
-  'Autre',
+  'Entertainment',
+  'Health',
+  'Housing',
+  'Clothing',
+  'Other',
 ]
 
 interface AddExpenseFormProps {
@@ -22,7 +22,7 @@ export default function AddExpenseForm({ onAdd, loading }: AddExpenseFormProps) 
   const { symbol, toEUR } = useCurrency()
   const today = new Date().toISOString().split('T')[0]
   const [amount, setAmount] = useState('')
-  const [category, setCategory] = useState('Alimentation')
+  const [category, setCategory] = useState('Food')
   const [description, setDescription] = useState('')
   const [date, setDate] = useState(today)
   const [error, setError] = useState('')
@@ -32,11 +32,11 @@ export default function AddExpenseForm({ onAdd, loading }: AddExpenseFormProps) 
     setError('')
     const parsed = parseFloat(amount)
     if (!amount || isNaN(parsed) || parsed <= 0) {
-      setError('Le montant doit être positif')
+      setError('Amount must be positive')
       return
     }
     if (!description.trim()) {
-      setError('La description est requise')
+      setError('Description is required')
       return
     }
     onAdd(toEUR(parsed), category, description.trim(), date)
@@ -50,7 +50,7 @@ export default function AddExpenseForm({ onAdd, loading }: AddExpenseFormProps) 
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800 transition-colors">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Ajouter une dépense</h2>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Add an expense</h2>
       {error && (
         <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 rounded-lg text-sm">
           {error}
@@ -59,7 +59,7 @@ export default function AddExpenseForm({ onAdd, loading }: AddExpenseFormProps) 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelClass}>Montant ({symbol})</label>
+            <label className={labelClass}>Amount ({symbol})</label>
             <input
               type="number"
               value={amount}
@@ -72,7 +72,7 @@ export default function AddExpenseForm({ onAdd, loading }: AddExpenseFormProps) 
             />
           </div>
           <div>
-            <label className={labelClass}>Catégorie</label>
+            <label className={labelClass}>Category</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -90,7 +90,7 @@ export default function AddExpenseForm({ onAdd, loading }: AddExpenseFormProps) 
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Ex: Courses au supermarché"
+            placeholder="E.g. Grocery shopping"
             className={inputClass}
             required
           />
@@ -111,7 +111,7 @@ export default function AddExpenseForm({ onAdd, loading }: AddExpenseFormProps) 
           disabled={loading}
           className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Ajout en cours...' : 'Ajouter la dépense'}
+          {loading ? 'Adding...' : 'Add expense'}
         </button>
       </form>
     </div>

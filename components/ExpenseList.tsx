@@ -12,23 +12,23 @@ interface ExpenseListProps {
 }
 
 const categoryIcons: Record<string, string> = {
-  Alimentation: '🍔',
+  Food: '🍔',
   Transport: '🚗',
-  Loisirs: '🎮',
-  Santé: '🏥',
-  Logement: '🏠',
-  Vêtements: '👕',
-  Autre: '📌',
+  Entertainment: '🎮',
+  Health: '🏥',
+  Housing: '🏠',
+  Clothing: '👕',
+  Other: '📌',
 }
 
 const categoryColors: Record<string, string> = {
-  Alimentation: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  Food: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
   Transport: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  Loisirs: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-  Santé: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-  Logement: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  Vêtements: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300',
-  Autre: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+  Entertainment: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+  Health: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+  Housing: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  Clothing: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300',
+  Other: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
 }
 
 export default function ExpenseList({ expenses, onDelete, onEdit }: ExpenseListProps) {
@@ -53,11 +53,11 @@ export default function ExpenseList({ expenses, onDelete, onEdit }: ExpenseListP
     if (!editingId) return
     const parsed = parseFloat(editAmount)
     if (isNaN(parsed) || parsed <= 0) {
-      setEditError('Le montant doit être supérieur à 0')
+      setEditError('Amount must be greater than 0')
       return
     }
     if (!editData.description?.trim()) {
-      setEditError('La description ne peut pas être vide')
+      setEditError('Description cannot be empty')
       return
     }
     onEdit(editingId, { ...editData, amount: toEUR(parsed) })
@@ -89,12 +89,12 @@ export default function ExpenseList({ expenses, onDelete, onEdit }: ExpenseListP
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Montant ({symbol})
+                    Amount ({symbol})
                   </label>
                   <input type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} className={inputClass} step="0.01" min="0.01" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Catégorie</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Category</label>
                   <select value={editData.category || ''} onChange={(e) => setEditData({ ...editData, category: e.target.value })} className={inputClass}>
                     {CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
@@ -109,8 +109,8 @@ export default function ExpenseList({ expenses, onDelete, onEdit }: ExpenseListP
                 <input type="date" value={editData.date || ''} onChange={(e) => setEditData({ ...editData, date: e.target.value })} className={inputClass} />
               </div>
               <div className="flex gap-2">
-                <button onClick={handleSave} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition text-sm font-medium">Enregistrer</button>
-                <button onClick={handleCancel} className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 rounded-lg transition text-sm font-medium">Annuler</button>
+                <button onClick={handleSave} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition text-sm font-medium">Save</button>
+                <button onClick={handleCancel} className="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 rounded-lg transition text-sm font-medium">Cancel</button>
               </div>
             </div>
           ) : (
@@ -125,7 +125,7 @@ export default function ExpenseList({ expenses, onDelete, onEdit }: ExpenseListP
                   </div>
                   <p className="text-gray-800 dark:text-gray-200 font-medium truncate">{expense.description}</p>
                   <p className="text-gray-400 dark:text-gray-500 text-xs mt-0.5">
-                    {new Date(expense.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    {new Date(expense.date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </p>
                 </div>
                 <p className="text-xl font-bold text-blue-600 dark:text-blue-400 ml-4 shrink-0">
@@ -133,8 +133,8 @@ export default function ExpenseList({ expenses, onDelete, onEdit }: ExpenseListP
                 </p>
               </div>
               <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <button onClick={() => handleEdit(expense)} className="flex-1 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 py-1.5 rounded-lg transition text-sm font-medium">Modifier</button>
-                <button onClick={() => onDelete(expense._id)} className="flex-1 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 py-1.5 rounded-lg transition text-sm font-medium">Supprimer</button>
+                <button onClick={() => handleEdit(expense)} className="flex-1 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 py-1.5 rounded-lg transition text-sm font-medium">Edit</button>
+                <button onClick={() => onDelete(expense._id)} className="flex-1 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 py-1.5 rounded-lg transition text-sm font-medium">Delete</button>
               </div>
             </>
           )}

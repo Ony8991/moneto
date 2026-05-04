@@ -36,16 +36,16 @@ export async function createExpense(userId: string, input: CreateExpenseInput) {
 export async function deleteExpense(userId: string, expenseId: string) {
   await connectDB()
   const expense = await Expense.findById(expenseId)
-  if (!expense) throw new Error('Dépense introuvable')
+  if (!expense) throw new Error('Expense not found')
   if (expense.userId.toString() !== userId) throw new Error('Forbidden')
   await Expense.findByIdAndDelete(expenseId)
-  return { message: 'Dépense supprimée' }
+  return { message: 'Expense deleted' }
 }
 
 export async function updateExpense(userId: string, expenseId: string, input: UpdateExpenseInput) {
   await connectDB()
   const expense = await Expense.findById(expenseId)
-  if (!expense) throw new Error('Dépense introuvable')
+  if (!expense) throw new Error('Expense not found')
   if (expense.userId.toString() !== userId) throw new Error('Forbidden')
   const updateData = { ...input, ...(input.date ? { date: new Date(input.date) } : {}) }
   return Expense.findByIdAndUpdate(expenseId, updateData, { new: true })

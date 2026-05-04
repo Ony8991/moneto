@@ -77,7 +77,7 @@ export default function DashboardPage() {
     setAddingExpense(true)
     const result = await addExpense(amount, category, description, date)
     showToast(
-      result.success ? 'Dépense ajoutée avec succès' : result.error || "Erreur lors de l'ajout",
+      result.success ? 'Expense added successfully' : result.error || 'Error while adding',
       result.success ? 'success' : 'error'
     )
     setAddingExpense(false)
@@ -87,7 +87,7 @@ export default function DashboardPage() {
     if (confirmDialog.expenseId) {
       const result = await deleteExpense(confirmDialog.expenseId)
       showToast(
-        result.success ? 'Dépense supprimée avec succès' : result.error || 'Erreur lors de la suppression',
+        result.success ? 'Expense deleted successfully' : result.error || 'Error while deleting',
         result.success ? 'success' : 'error'
       )
     }
@@ -97,7 +97,7 @@ export default function DashboardPage() {
   const handleEditExpense = async (id: string, data: Partial<Expense>) => {
     const result = await updateExpense(id, data)
     showToast(
-      result.success ? 'Dépense modifiée avec succès' : result.error || 'Erreur lors de la modification',
+      result.success ? 'Expense updated successfully' : result.error || 'Error while updating',
       result.success ? 'success' : 'error'
     )
   }
@@ -113,14 +113,14 @@ export default function DashboardPage() {
         <div className="max-w-6xl mx-auto px-4 py-5 flex justify-between items-center gap-4 flex-wrap">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Moneto</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">Bienvenue, {user.name}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Welcome, {user.name}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              title="Changer la devise"
+              title="Change currency"
             >
               {Object.values(CURRENCIES).map((c) => (
                 <option key={c.code} value={c.code}>
@@ -131,7 +131,7 @@ export default function DashboardPage() {
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
-              title={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
             >
               {theme === 'dark' ? '☀️' : '🌙'}
             </button>
@@ -139,7 +139,7 @@ export default function DashboardPage() {
               onClick={handleLogout}
               className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition text-sm font-medium whitespace-nowrap"
             >
-              Déconnexion
+              Logout
             </button>
           </div>
         </div>
@@ -149,19 +149,19 @@ export default function DashboardPage() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
-            <p className="text-gray-500 dark:text-gray-400 text-sm">Total des dépenses</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Total expenses</p>
             <p className="text-3xl font-bold text-blue-600 mt-1">
               {loading ? '...' : `${fromEUR(filteredTotal).toFixed(2)} ${symbol}`}
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
-            <p className="text-gray-500 dark:text-gray-400 text-sm">Nombre de dépenses</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Number of expenses</p>
             <p className="text-3xl font-bold text-purple-600 mt-1">
               {loading ? '...' : filteredExpenses.length}
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
-            <p className="text-gray-500 dark:text-gray-400 text-sm">Moyenne par dépense</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Average per expense</p>
             <p className="text-3xl font-bold text-green-600 mt-1">
               {loading ? '...' : `${fromEUR(average).toFixed(2)} ${symbol}`}
             </p>
@@ -182,20 +182,20 @@ export default function DashboardPage() {
         {/* Filters + Search */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-wrap gap-4 items-end transition-colors">
           <div className="flex-1 min-w-36">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catégorie</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
-              <option value="">Toutes les catégories</option>
+              <option value="">All categories</option>
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
           </div>
           <div className="flex-1 min-w-36">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mois</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Month</label>
             <input
               type="month"
               value={monthFilter}
@@ -204,12 +204,12 @@ export default function DashboardPage() {
             />
           </div>
           <div className="flex-1 min-w-48">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Recherche</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Description ou catégorie..."
+              placeholder="Description or category..."
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
@@ -218,7 +218,7 @@ export default function DashboardPage() {
               onClick={() => { setCategoryFilter(''); setMonthFilter(''); setSearch('') }}
               className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
             >
-              Réinitialiser
+              Reset
             </button>
           )}
         </div>
@@ -231,23 +231,23 @@ export default function DashboardPage() {
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
               <div className="flex justify-between items-center mb-5">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Historique</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">History</h2>
                 {search && (
                   <span className="text-sm text-gray-400 dark:text-gray-500">
-                    {filteredExpenses.length} résultat{filteredExpenses.length !== 1 ? 's' : ''}
+                    {filteredExpenses.length} result{filteredExpenses.length !== 1 ? 's' : ''}
                   </span>
                 )}
               </div>
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3" />
-                  <p className="text-gray-400 dark:text-gray-500 text-sm">Chargement...</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-sm">Loading...</p>
                 </div>
               ) : filteredExpenses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-gray-500 dark:text-gray-400 text-lg">Aucune dépense</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-lg">No expenses</p>
                   <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
-                    {hasFilters ? 'Aucun résultat pour ces filtres' : 'Commencez à ajouter des dépenses'}
+                    {hasFilters ? 'No results for these filters' : 'Start adding expenses'}
                   </p>
                 </div>
               ) : (
@@ -264,10 +264,10 @@ export default function DashboardPage() {
 
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
-        title="Supprimer la dépense"
-        message="Êtes-vous sûr de vouloir supprimer cette dépense ? Cette action ne peut pas être annulée."
-        confirmText="Supprimer"
-        cancelText="Annuler"
+        title="Delete expense"
+        message="Are you sure you want to delete this expense? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
         isDestructive
         onConfirm={confirmDelete}
         onCancel={() => setConfirmDialog({ isOpen: false, expenseId: null })}
