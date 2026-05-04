@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { useAuth } from '@/context/AuthContext'
@@ -10,6 +10,7 @@ import { useTheme } from '@/context/ThemeContext'
 import AddExpenseForm from '@/components/AddExpenseForm'
 import ExpenseList from '@/components/ExpenseList'
 import BudgetSection from '@/components/BudgetSection'
+import RecurringSection from '@/components/RecurringSection'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Toast } from '@/components/Toast'
 import { Expense } from '@/types/expense'
@@ -28,10 +29,17 @@ export default function DashboardPage() {
   const [monthFilter, setMonthFilter] = useState('')
   const [search, setSearch] = useState('')
 
-  const { expenses, loading, total, addExpense, updateExpense, deleteExpense } = useExpenses({
+  const { expenses, loading, total, addExpense, updateExpense, deleteExpense, reload } = useExpenses({
     category: categoryFilter || undefined,
     month: monthFilter || undefined,
   })
+
+  useEffect(() => {
+    fetch('/api/recurring/apply', { method: 'POST' })
+      .then(r => r.json())
+      .then(data => { if (data.created > 0) reload() })
+      .catch(() => {})
+  }, [reload])
 
   const filteredExpenses = useMemo(() => {
     if (!search.trim()) return expenses
@@ -170,6 +178,9 @@ export default function DashboardPage() {
 
         {/* Budget */}
         <BudgetSection expenses={expenses} />
+
+        {/* Recurring */}
+        <RecurringSection onApplied={reload} />
 
         {/* Charts */}
         {!loading && expenses.length > 0 && (

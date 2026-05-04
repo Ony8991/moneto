@@ -22,6 +22,15 @@ const ExpenseSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  recurringId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'RecurringExpense',
+    default: null,
+  },
+  generatedMonth: {
+    type: String,
+    default: null,
+  },
 })
 
 const Expense = mongoose.models.Expense || mongoose.model('Expense', ExpenseSchema)

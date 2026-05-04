@@ -95,5 +95,5 @@ export function useExpenses(filters: ExpenseFilters = {}) {
     }
   }
 
-  return { expenses, loading, total, addExpense, updateExpense, deleteExpense }
+  return { expenses, loading, total, addExpense, updateExpense, deleteExpense, reload: loadExpenses }
 }

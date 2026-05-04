@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import PwaInit from "@/components/PwaInit";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +17,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Moneto - Gestion des dépenses",
-  description: "Gérez vos dépenses facilement avec Moneto",
+  title: "Moneto - Expense Manager",
+  description: "Manage your expenses easily with Moneto",
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Moneto' },
+  formatDetection: { telephone: false },
 };
 
 export default function RootLayout({
@@ -27,12 +31,12 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="fr"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
         <meta charSet="UTF-8" />
-        {/* Prevents theme flash on page load */}
+        <meta name="theme-color" content="#3b82f6" />
         <script dangerouslySetInnerHTML={{ __html: `
           try {
             const t = localStorage.getItem('theme');
@@ -46,6 +50,7 @@ export default function RootLayout({
         <AuthProvider>
           <CurrencyProvider>
             <ThemeProvider>
+              <PwaInit />
               {children}
             </ThemeProvider>
           </CurrencyProvider>
