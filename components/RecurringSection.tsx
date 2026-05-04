@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRecurring } from '@/hooks/useRecurring'
 import { CATEGORIES } from './AddExpenseForm'
 import { useCurrency } from '@/context/CurrencyContext'
+import { formatAmount } from '@/lib/format'
 
 export default function RecurringSection({ onApplied }: { onApplied: () => void }) {
   const { items, loading, add, remove } = useRecurring()
@@ -101,7 +102,7 @@ export default function RecurringSection({ onApplied }: { onApplied: () => void 
               </div>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-blue-600 dark:text-blue-400 text-sm">
-                  {fromEUR(item.amount).toFixed(2)} {symbol}
+                  {formatAmount(fromEUR(item.amount))} {symbol}
                 </span>
                 <button
                   onClick={() => handleRemove(item._id)}

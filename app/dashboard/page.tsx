@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Toast } from '@/components/Toast'
 import { Expense } from '@/types/expense'
 import { CATEGORIES } from '@/components/AddExpenseForm'
+import { formatAmount } from '@/lib/format'
 
 const ExpenseChart = dynamic(() => import('@/components/ExpenseChart'), { ssr: false })
 const MonthlyChart = dynamic(() => import('@/components/MonthlyChart'), { ssr: false })
@@ -159,7 +160,7 @@ export default function DashboardPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
             <p className="text-gray-500 dark:text-gray-400 text-sm">Total expenses</p>
             <p className="text-3xl font-bold text-blue-600 mt-1">
-              {loading ? '...' : `${fromEUR(filteredTotal).toFixed(2)} ${symbol}`}
+              {loading ? '...' : `${formatAmount(fromEUR(filteredTotal))} ${symbol}`}
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
@@ -171,7 +172,7 @@ export default function DashboardPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
             <p className="text-gray-500 dark:text-gray-400 text-sm">Average per expense</p>
             <p className="text-3xl font-bold text-green-600 mt-1">
-              {loading ? '...' : `${fromEUR(average).toFixed(2)} ${symbol}`}
+              {loading ? '...' : `${formatAmount(fromEUR(average))} ${symbol}`}
             </p>
           </div>
         </div>

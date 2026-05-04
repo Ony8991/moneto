@@ -5,6 +5,7 @@ import { Expense } from '@/types/expense'
 import { CATEGORIES } from './AddExpenseForm'
 import { useBudgets } from '@/hooks/useBudgets'
 import { useCurrency } from '@/context/CurrencyContext'
+import { formatAmount } from '@/lib/format'
 
 interface Props {
   expenses: Expense[]
@@ -137,8 +138,8 @@ export default function BudgetSection({ expenses }: Props) {
                 )}
               </div>
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
-                <span>{spentDisplay.toFixed(2)} {symbol}</span>
-                <span>/ {budgetDisplay.toFixed(2)} {symbol}</span>
+                <span>{formatAmount(spentDisplay)} {symbol}</span>
+                <span>/ {formatAmount(budgetDisplay)} {symbol}</span>
               </div>
               <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div

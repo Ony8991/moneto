@@ -3,15 +3,16 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { Expense } from '@/types/expense'
 import { useCurrency } from '@/context/CurrencyContext'
+import { formatAmount } from '@/lib/format'
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Alimentation: '#f97316',
+  Food: '#f97316',
   Transport: '#3b82f6',
-  Loisirs: '#a855f7',
-  Santé: '#ef4444',
-  Logement: '#22c55e',
-  Vêtements: '#ec4899',
-  Autre: '#6b7280',
+  Entertainment: '#a855f7',
+  Health: '#ef4444',
+  Housing: '#22c55e',
+  Clothing: '#ec4899',
+  Other: '#6b7280',
 }
 
 interface Props {
@@ -36,8 +37,8 @@ export default function ExpenseChart({ expenses }: Props) {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">Répartition par catégorie</h2>
-      <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">Total : {total.toFixed(2)} {symbol}</p>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">Breakdown by category</h2>
+      <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">Total: {formatAmount(total)} {symbol}</p>
 
       <div className="flex flex-col lg:flex-row gap-6 items-center">
         <div className="w-full lg:w-1/2" style={{ height: 220 }}>
@@ -49,7 +50,7 @@ export default function ExpenseChart({ expenses }: Props) {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value) => [`${Number(value).toFixed(2)} ${symbol}`, '']}
+                formatter={(value) => [`${formatAmount(Number(value))} ${symbol}`, '']}
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />
             </PieChart>
@@ -67,7 +68,7 @@ export default function ExpenseChart({ expenses }: Props) {
                     <span className="text-sm text-gray-700 dark:text-gray-300">{entry.name}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{entry.value.toFixed(2)} {symbol}</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{formatAmount(entry.value)} {symbol}</span>
                     <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">{pct.toFixed(1)}%</span>
                   </div>
                 </div>

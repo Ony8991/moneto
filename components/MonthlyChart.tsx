@@ -3,11 +3,12 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { useMonthlyStats } from '@/hooks/useMonthlyStats'
 import { useCurrency } from '@/context/CurrencyContext'
+import { formatAmount } from '@/lib/format'
 
 const MONTH_LABELS: Record<string, string> = {
-  '01': 'Jan', '02': 'Fév', '03': 'Mar', '04': 'Avr',
-  '05': 'Mai', '06': 'Juin', '07': 'Juil', '08': 'Août',
-  '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Déc',
+  '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr',
+  '05': 'May', '06': 'Jun', '07': 'Jul', '08': 'Aug',
+  '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec',
 }
 
 export default function MonthlyChart() {
@@ -32,9 +33,9 @@ export default function MonthlyChart() {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">
-        Évolution mensuelle
+        Monthly trend
       </h2>
-      <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">12 derniers mois</p>
+      <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">Last 12 months</p>
       <div style={{ height: 220 }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -53,7 +54,7 @@ export default function MonthlyChart() {
               width={55}
             />
             <Tooltip
-              formatter={(value) => [`${Number(value).toFixed(2)} ${symbol}`, 'Total']}
+              formatter={(value) => [`${formatAmount(Number(value))} ${symbol}`, 'Total']}
               contentStyle={{
                 borderRadius: '8px',
                 border: 'none',

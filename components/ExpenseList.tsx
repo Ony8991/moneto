@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Expense } from '@/types/expense'
 import { CATEGORIES } from './AddExpenseForm'
 import { useCurrency } from '@/context/CurrencyContext'
+import { formatAmount } from '@/lib/format'
 
 interface ExpenseListProps {
   expenses: Expense[]
@@ -129,7 +130,7 @@ export default function ExpenseList({ expenses, onDelete, onEdit }: ExpenseListP
                   </p>
                 </div>
                 <p className="text-xl font-bold text-blue-600 dark:text-blue-400 ml-4 shrink-0">
-                  {fromEUR(expense.amount).toFixed(2)} {symbol}
+                  {formatAmount(fromEUR(expense.amount))} {symbol}
                 </p>
               </div>
               <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
